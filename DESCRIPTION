@@ -8,8 +8,10 @@ Authors@R:
            email = "benno.simmons@gmail.com",
            comment = c(ORCID = "0000-0002-2751-9430"))
 Description: What the package does (one paragraph).
+Depends: R (>= 4.0.2)
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.0
+Imports: bmotif (>= 2.0.0)
