@@ -37,7 +37,6 @@ test_that("bmotif arguments work",{
   expect_true(all(unlist(lapply(out, ncol))==76))
 })
 
-
 test_that("Row and column species are split correctly between output list elements",{
   m <- matrix(0,20,20)
   m[5,5] <- 1
