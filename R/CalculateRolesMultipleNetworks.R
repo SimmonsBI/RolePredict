@@ -12,6 +12,13 @@ CalculateRolesMultipleNetworks <- function(network_list, ...){
   if(!all(sapply(network_list, function(x){
     all(apply(x, 1:2, function(x) x >= 0))
   }))){stop("Elements of 'network_list' must be matrices whose elements are >= 0")}
+  if(!all(sapply(network_list, function(x){
+    sum(x) > 0
+  }))){stop("Elements of 'network_list' must be matrices with at least one non-zero element")}
+  args <- list(...)
+  if(length(args$level) != 0){
+    if(args$level != "all"){stop("'level' must be set to 'all'. This does not affect computation time.")}
+  }
 
   # Extract network names -----------------
   if(!is.null(names(network_list))){
@@ -30,8 +37,10 @@ CalculateRolesMultipleNetworks <- function(network_list, ...){
     roles_allspp$species <- rownames(roles_allspp) # move species name from rowname to its own column
     rownames(roles_allspp) <- NULL # remove row names
     roles_allspp <- roles_allspp[,c((ncol(roles_allspp)-1), ncol(roles_allspp), which(grepl(pattern = "np", x = colnames(roles_allspp))))] # reorder columns, so it goes network, species, np1...
-    roles_rows[[i]] <- roles_allspp[roles_allspp$np1 == 0,] # store row species roles in their own list
-    roles_columns[[i]] <- roles_allspp[roles_allspp$np1 != 0,] # store column species roles in their own list
+    nr <- nrow(network_list[[i]]) # number of rows in focal network
+    nc <- ncol(network_list[[i]]) # number of columns in focal network
+    roles_rows[[i]] <- roles_allspp[1:nr,] # store row species roles in their own list
+    roles_columns[[i]] <- roles_allspp[(nr+1):(nr+nc),] # store column species roles in their own list
   }
 
   # Prepare output -----------------
