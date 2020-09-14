@@ -67,7 +67,7 @@ ConservatismPermTest <- function(roles, n_it, species){
       null_mpds <- c(null_mpds, mean(vegan::vegdist(x = sampled_null_roles, method = "bray"))) # record mean pairwise Bray-Curtis distance between the permuted focal species' roles
     }
 
-    # output
+    # record output
     conservatism$species[wr] <- focal_species # species ID
     conservatism$observed_dissimilarity[wr] <- focal_species_mpd # observed mean pairwise dissimilarity
     conservatism$mean_null_dissimilarity[wr] <- mean(null_mpds) # mean of the null mean pairwise dissimilarities
@@ -75,6 +75,7 @@ ConservatismPermTest <- function(roles, n_it, species){
     conservatism$z[wr] <- (conservatism$mean_null_dissimilarity[wr] - focal_species_mpd)/sd(null_mpds) # z score; if positive, there is a positive conservatism signal
     conservatism$P[wr] <- sum(null_mpds < focal_species_mpd)/n_it # P value - proportion of iterations where the null MPD was less than the observed MPD
     setTxtProgressBar(pb, wr)
+    cat("\r")
   }
-  conservatism
+  conservatism # output
 }
