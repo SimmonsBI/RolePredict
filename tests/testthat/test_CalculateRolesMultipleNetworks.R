@@ -10,6 +10,11 @@ test_that("Argument checks work", {
   expect_error(CalculateRolesMultipleNetworks(list(matrix(0,2,2),matrix(0,2,2)),weights_method="none"), "Elements of 'network_list' must be matrices with at least one non-zero element")
   expect_error(CalculateRolesMultipleNetworks(network_list = list(matrix(1,2,2),matrix(1,2,2)), weights_method = "none", level = "rows"),"'level' must be set to 'all'. This does not affect computation time.")
   expect_error(CalculateRolesMultipleNetworks(network_list = list(matrix(1,2,2),matrix(1,2,2)), weights_method = "none", level = "columns"),"'level' must be set to 'all'. This does not affect computation time.")
+  m <- matrix(1,3,3, dimnames = list(c("a","a","b"),c("c","c","d")))
+  expect_error(CalculateRolesMultipleNetworks(network_list = list(m,m), weights_method = "none"),"Input matrix must not have duplicate row or column names")
+  m <- matrix(1,3,3)
+  m[1,] <- 0
+  expect_error(CalculateRolesMultipleNetworks(network_list = list(m,m), weights_method = "none"), "One or more networks in 'network_list' has one or more empty rows or empty columns. Networks must not have any empty rows or empty columns")
 })
 
 test_that("Output is correct", {
@@ -27,6 +32,8 @@ test_that("Output is correct", {
   expect_true(inherits(out[[2]][,2], "character"))
   expect_true(all(apply(out[[1]][,3:25], 1:2, function(x) inherits(x, "numeric"))))
   expect_true(all(apply(out[[2]][,3:25], 1:2, function(x) inherits(x, "numeric"))))
+  expect_true(all(sapply(split(out[[1]], out[[1]]$network), function(x) all(table(x$species)==1)))) # all species occur once in each network
+  expect_true(all(sapply(split(out[[2]], out[[2]]$network), function(x) all(table(x$species)==1)))) # all species occur once in each network
   expect_identical(out, data_CalculateRolesMultipleNetworks)
 })
 
@@ -38,8 +45,7 @@ test_that("bmotif arguments work",{
 })
 
 test_that("Row and column species are split correctly between output list elements",{
-  m <- matrix(0,20,20)
-  m[5,5] <- 1
+  m <- matrix(1,20,20)
   out <- CalculateRolesMultipleNetworks(list(m,m),weights_method="none")
 
   expect_false(any(grepl(pattern = "c", x = out[[1]]$species))) # make sure no c species in the row element
