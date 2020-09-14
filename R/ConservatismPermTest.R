@@ -44,38 +44,37 @@ ConservatismPermTest <- function(roles, n_it, species){
   wr <- 0 # initialise row write counter at 0
   number_of_species <- length(species)
   pb <- txtProgressBar(min = 0, max = number_of_species, style = 3)
-
-    for(focal_species in species){ # for each member of species...
-      wr <- wr + 1 # increment the write counter
-      if(focal_species %in% row_species){ # if the focal species is a row species
-        conservatism$level[wr] <- "row" # record that this is a row species
-        focal_species_roles <- row_roles[row_roles$species == focal_species,grepl(pattern = "np[0-9]", x = colnames(row_roles))] # extract roles of focal species
-        focal_species_mpd <- mean(vegan::vegdist(x = focal_species_roles, method = "bray")) # calculate mean pairwise Bray-Curtis distance between the focal species' roles
-        null_roles <- row_roles # null roles to permute are set to the row roles
-      } else if(focal_species %in% column_species){ # if the focal species is a column species
-        conservatism$level[wr] <- "column" # record that this is a column species
-        focal_species_roles <- column_roles[column_roles$species == focal_species,grepl(pattern = "np[0-9]", x = colnames(column_roles))] # extract roles of focal species
-        focal_species_mpd <- mean(vegan::vegdist(x = focal_species_roles, method = "bray")) # calculate mean pairwise Bray-Curtis distance between the focal species' roles
-        null_roles <- column_roles
-      }
-      null_mpds <- NULL # initialise a container to record the distribution of null mean pairwise distances
-      for(i in 1:n_it){ # for 1 to the number of iterations
-        null_roles <- do.call("rbind", lapply(split(null_roles, null_roles$network), function(x){ # split null roles by network, permute the species labels randomly within each network, and rejoin into a single data frame
-          x$species <- sample(x$species)
-          x
-        }))
-        sampled_null_roles <- null_roles[null_roles$species == focal_species,grepl(pattern = "np[0-9]", x = colnames(null_roles))] # extract roles of 'focal' species from the permuted data (equivalent to randomly selecting a stratified sample)
-        null_mpds <- c(null_mpds, mean(vegan::vegdist(x = sampled_null_roles, method = "bray"))) # record mean pairwise Bray-Curtis distance between the permuted focal species' roles
-      }
-
-      # output
-      conservatism$species[wr] <- focal_species # species ID
-      conservatism$observed_dissimilarity[wr] <- focal_species_mpd # observed mean pairwise dissimilarity
-      conservatism$mean_null_dissimilarity[wr] <- mean(null_mpds) # mean of the null mean pairwise dissimilarities
-      conservatism$delta[wr] <- conservatism$mean_null_dissimilarity[wr] - focal_species_mpd # difference between mean null dissimilarity and observed dissimilarity; if positive, the observed dissimilarity is less than random, and thus there is a positive conservatism signal
-      conservatism$z[wr] <- (conservatism$mean_null_dissimilarity[wr] - focal_species_mpd)/sd(null_mpds) # z score; if positive, there is a positive conservatism signal
-      conservatism$P[wr] <- sum(null_mpds < focal_species_mpd)/n_it # P value - proportion of iterations where the null MPD was less than the observed MPD
-      setTxtProgressBar(pb, wr)
+  for(focal_species in species){ # for each member of species...
+    wr <- wr + 1 # increment the write counter
+    if(focal_species %in% row_species){ # if the focal species is a row species
+      conservatism$level[wr] <- "row" # record that this is a row species
+      focal_species_roles <- row_roles[row_roles$species == focal_species,grepl(pattern = "np[0-9]", x = colnames(row_roles))] # extract roles of focal species
+      focal_species_mpd <- mean(vegan::vegdist(x = focal_species_roles, method = "bray")) # calculate mean pairwise Bray-Curtis distance between the focal species' roles
+      null_roles <- row_roles # null roles to permute are set to the row roles
+    } else if(focal_species %in% column_species){ # if the focal species is a column species
+      conservatism$level[wr] <- "column" # record that this is a column species
+      focal_species_roles <- column_roles[column_roles$species == focal_species,grepl(pattern = "np[0-9]", x = colnames(column_roles))] # extract roles of focal species
+      focal_species_mpd <- mean(vegan::vegdist(x = focal_species_roles, method = "bray")) # calculate mean pairwise Bray-Curtis distance between the focal species' roles
+      null_roles <- column_roles
     }
+    null_mpds <- NULL # initialise a container to record the distribution of null mean pairwise distances
+    for(i in 1:n_it){ # for 1 to the number of iterations
+      null_roles <- do.call("rbind", lapply(split(null_roles, null_roles$network), function(x){ # split null roles by network, permute the species labels randomly within each network, and rejoin into a single data frame
+        x$species <- sample(x$species)
+        x
+      }))
+      sampled_null_roles <- null_roles[null_roles$species == focal_species,grepl(pattern = "np[0-9]", x = colnames(null_roles))] # extract roles of 'focal' species from the permuted data (equivalent to randomly selecting a stratified sample)
+      null_mpds <- c(null_mpds, mean(vegan::vegdist(x = sampled_null_roles, method = "bray"))) # record mean pairwise Bray-Curtis distance between the permuted focal species' roles
+    }
+
+    # output
+    conservatism$species[wr] <- focal_species # species ID
+    conservatism$observed_dissimilarity[wr] <- focal_species_mpd # observed mean pairwise dissimilarity
+    conservatism$mean_null_dissimilarity[wr] <- mean(null_mpds) # mean of the null mean pairwise dissimilarities
+    conservatism$delta[wr] <- conservatism$mean_null_dissimilarity[wr] - focal_species_mpd # difference between mean null dissimilarity and observed dissimilarity; if positive, the observed dissimilarity is less than random, and thus there is a positive conservatism signal
+    conservatism$z[wr] <- (conservatism$mean_null_dissimilarity[wr] - focal_species_mpd)/sd(null_mpds) # z score; if positive, there is a positive conservatism signal
+    conservatism$P[wr] <- sum(null_mpds < focal_species_mpd)/n_it # P value - proportion of iterations where the null MPD was less than the observed MPD
+    setTxtProgressBar(pb, wr)
+  }
   conservatism
 }
