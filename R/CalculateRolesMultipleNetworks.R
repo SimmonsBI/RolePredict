@@ -19,6 +19,7 @@ CalculateRolesMultipleNetworks <- function(network_list, ...){
   if(length(args$level) != 0){
     if(args$level != "all"){stop("'level' must be set to 'all'. This does not affect computation time.")}
   }
+  if(!all(sapply(network_list, function(x){all(colSums(x)>0) & all(rowSums(x)>0)}))){stop("One or more networks in 'network_list' has one or more empty rows or empty columns. Networks must not have any empty rows or empty columns")}
 
   # Extract network names -----------------
   if(!is.null(names(network_list))){
