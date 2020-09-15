@@ -34,6 +34,8 @@ test_that("Output is correct", {
   expect_true(all(apply(out[[2]][,3:25], 1:2, function(x) inherits(x, "numeric"))))
   expect_true(all(sapply(split(out[[1]], out[[1]]$network), function(x) all(table(x$species)==1)))) # all species occur once in each network
   expect_true(all(sapply(split(out[[2]], out[[2]]$network), function(x) all(table(x$species)==1)))) # all species occur once in each network
+  expect_true(all(paste0("r",1:10) %in% out[[1]]$species))
+  expect_true(all(paste0("c",1:5) %in% out[[2]]$species))
   expect_identical(out, data_CalculateRolesMultipleNetworks)
 })
 
