@@ -15,19 +15,27 @@ ConservatismPermTest <- function(roles, n_it, species){
   # species
   if(!inherits(species, "character")){stop("'species' must be a vector of character strings. The vector must be of length >= 1.")}
   if(length(species) < 1){stop("'species' must be a vector of length >= 1")}
-  if(!all(table(species)==1)){stop("species must not contain any duplicate names")}
+  if(!all(table(species)==1)){stop("'species' must not contain any duplicate names")}
 
+  # Make species argument if set to all, rows or columns -----------------
   all_species <- c(roles[[1]]$species, roles[[2]]$species) # all occurrences of all species in 'roles'
-
-  if(species == "all"){ # if species == "all", assign it all species that occur more than once in 'roles'
-    species <- names(which(table(all_species)>1))
+  if(length(species) == 1){
+    if(species == "all"){ # if species == "all", assign it all species that occur more than once in 'roles'
+      species <- names(which(table(all_species)>1))
+    } else if(species == "rows"){
+      species <- names(which(table(roles[[1]]$species)>1))
+    } else if(species == "columns"){
+      species <- names(which(table(roles[[2]]$species)>1))
+    }
   }
-  if(!all(species %in% all_species)){ # make sure all species are in 'roles'
+
+  # More checks of species argument -----------------
+  if(!all(species %in% all_species)){ # make sure all elements of 'species' are in 'roles'
     species_not_in_data <- setdiff(x = unique(species), y = unique(all_species))
     message("Error: All elements of 'species' must be present in 'roles'. Species which are not present have been returned as a vector object if you want to access these programmatically")
     return(species_not_in_data)
   }
-  if(!all(table(all_species)[species]>1)){ # make sure all species are in 'roles' more than once
+  if(!all(table(all_species)[species]>1)){ # make sure all elements of 'species' are in 'roles' more than once
     species_not_more_than_once <- names(which(!(table(all_species)[species]>1)))
     message("Error: To assess conservatism, all elements of 'species' must occur more than once in 'roles' (it is not possible to assess conservatism across a single occurrence). Species in 'species' that do not occur more than once have been returned as a vector object if you want to access these programmatically")
     return(species_not_more_than_once)
@@ -64,7 +72,7 @@ ConservatismPermTest <- function(roles, n_it, species){
       null_mpds <- c(null_mpds, mean(vegan::vegdist(x = sampled_null_roles, method = "bray"))) # record mean pairwise Bray-Curtis distance between the permuted focal species' roles
     }
 
-    # record output
+    # Record output -----------------
     conservatism$species[wr] <- focal_species # species ID
     conservatism$observed_dissimilarity[wr] <- focal_species_mpd # observed mean pairwise dissimilarity
     conservatism$mean_null_dissimilarity[wr] <- mean(null_mpds) # mean of the null mean pairwise dissimilarities
