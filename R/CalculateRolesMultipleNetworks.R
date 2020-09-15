@@ -1,5 +1,6 @@
 CalculateRolesMultipleNetworks <- function(network_list, ...){
   # Argument checks -----------------
+  args <- list(...)
   if(!inherits(network_list, "list")){stop("'network_list' must be a list")}
   if(length(network_list)<2){stop("'network_list' must be a list of length 2 or more")}
   if(!all(sapply(network_list, inherits, "matrix"))){stop("Elements of 'network_list' must be of class 'matrix'")}
@@ -34,7 +35,11 @@ CalculateRolesMultipleNetworks <- function(network_list, ...){
   pb <- txtProgressBar(min = 0, max = length(network_list), style = 3) # progress bar
 
   for(i in seq(network_list)){
-    roles_allspp <- bmotif::node_positions(M = network_list[[i]], ...) # calculate roles of species in network i
+    if(is.null(args$weights_method)){ # if weights_method isn't set, set it to 'none'
+      roles_allspp <- bmotif::node_positions(M = network_list[[i]], weights_method = "none", ...) # calculate roles of species in network i, assuming weights_method = 'none'
+    } else {
+      roles_allspp <- bmotif::node_positions(M = network_list[[i]], ...) # calculate roles of species in network i
+    }
     roles_allspp$network <- network_names[i] # add network name
     roles_allspp$species <- rownames(roles_allspp) # move species name from rowname to its own column
     rownames(roles_allspp) <- NULL # remove row names
