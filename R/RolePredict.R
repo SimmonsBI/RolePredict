@@ -1,4 +1,4 @@
-RolePredict <- function(training_networks, networks_to_predict, conservatism, weights = NULL, n_it, species_remapping, ...){
+RolePredict <- function(training_networks, networks_to_predict, conservatism, weighting = NULL, n_it, species_remapping, ...){
   # Argument checks -----------------
   # training networks
   if(any(sapply(training_networks, function(x){any(is.null(rownames(x)), is.null(colnames(x)))}))){stop("All elements of training_networks must have row and column names")}
@@ -44,32 +44,32 @@ RolePredict <- function(training_networks, networks_to_predict, conservatism, we
   if(!length(conservatism) != 1){stop("'conservatism' must be a character string of length 1 equal to: 'none','conservatism_output', 'calculate', 'custom'")}
   if(!conservatism %in% c("none","conservatism_output", "calculate", "custom")){stop("'conservatism' must be a character string equal to: 'none','conservatism_output', 'calculate', 'custom'")}
 
-  # weights
+  # weighting
   if(conservatism == "none"){
-    if(!is.null(weights)){stop("If 'conservatism' == 'none', you cannot set the 'weights' argument, it must be left blank")}
+    if(!is.null(weighting)){stop("If 'conservatism' == 'none', you cannot set the 'weighting' argument, it must be left blank")}
   } else if(conservatism == "conservatism_output"){
-    if(!inherits(weights, "data.frame")){stop("'weights' must be the output of Conservatism() or ConservatismPermTest(): the output of those functions should be a data.frame")}
-    if(ncol(weights) != 7){stop("'weights' must be the output of Conservatism() or ConservatismPermTest(): the output of those functions should have 7 columns")}
-    if(!identical(colnames(weights), c("level","species","observed_dissimilarity","mean_null_dissimilarity","delta","z","P"))){stop("'weights' must be the output of Conservatism() or ConservatismPermTest(): the column names do not match the output of that function")}
-    if(any(!weights$level %in% c("row","column"))){stop("'weights' must be the output of Conservatism() or ConservatismPermTest(): the level column must only contain strings equal to 'row' or 'column'")}
-    if(!inherits(weights$observed_dissimilarity, "numeric")){stop("'weights' must be the output of Conservatism() or ConservatismPermTest(): column observed_dissimilarity must be numeric")}
-    if(!inherits(weights$mean_null_dissimilarity, "numeric")){stop("'weights' must be the output of Conservatism() or ConservatismPermTest(): column mean_null_dissimilarity must be numeric")}
-    if(!inherits(weights$delta, "numeric")){stop("'weights' must be the output of Conservatism() or ConservatismPermTest(): column delta must be numeric")}
-    if(!inherits(weights$z, "numeric")){stop("'weights' must be the output of Conservatism() or ConservatismPermTest(): column z must be numeric")}
-    if(!inherits(weights$P, "numeric")){stop("'weights' must be the output of Conservatism() or ConservatismPermTest(): column P must be numeric")}
-    if(any(weights$P > 1)){stop("'weights' must be the output of Conservatism() or ConservatismPermTest(): values of column P are > 1")}
-    if(any(weights$P < 0)){stop("'weights' must be the output of Conservatism() or ConservatismPermTest(): values of column P are < 0")}
-    if(!all(weights$species %in% all_species)){stop("'weights' must be the output of Conservatism() or ConservatismPermTest() run on the same data as in training_networks. Not all species in 'weights' are present in training_networks")}
+    if(!inherits(weighting, "data.frame")){stop("'weighting' must be the output of Conservatism() or ConservatismPermTest(): the output of those functions should be a data.frame")}
+    if(ncol(weighting) != 7){stop("'weighting' must be the output of Conservatism() or ConservatismPermTest(): the output of those functions should have 7 columns")}
+    if(!identical(colnames(weighting), c("level","species","observed_dissimilarity","mean_null_dissimilarity","delta","z","P"))){stop("'weighting' must be the output of Conservatism() or ConservatismPermTest(): the column names do not match the output of that function")}
+    if(any(!weighting$level %in% c("row","column"))){stop("'weighting' must be the output of Conservatism() or ConservatismPermTest(): the level column must only contain strings equal to 'row' or 'column'")}
+    if(!inherits(weighting$observed_dissimilarity, "numeric")){stop("'weighting' must be the output of Conservatism() or ConservatismPermTest(): column observed_dissimilarity must be numeric")}
+    if(!inherits(weighting$mean_null_dissimilarity, "numeric")){stop("'weighting' must be the output of Conservatism() or ConservatismPermTest(): column mean_null_dissimilarity must be numeric")}
+    if(!inherits(weighting$delta, "numeric")){stop("'weighting' must be the output of Conservatism() or ConservatismPermTest(): column delta must be numeric")}
+    if(!inherits(weighting$z, "numeric")){stop("'weighting' must be the output of Conservatism() or ConservatismPermTest(): column z must be numeric")}
+    if(!inherits(weighting$P, "numeric")){stop("'weighting' must be the output of Conservatism() or ConservatismPermTest(): column P must be numeric")}
+    if(any(weighting$P > 1)){stop("'weighting' must be the output of Conservatism() or ConservatismPermTest(): values of column P are > 1")}
+    if(any(weighting$P < 0)){stop("'weighting' must be the output of Conservatism() or ConservatismPermTest(): values of column P are < 0")}
+    if(!all(weighting$species %in% all_species)){stop("'weighting' must be the output of Conservatism() or ConservatismPermTest() run on the same data as in training_networks. Not all species in 'weighting' are present in training_networks")}
   } else if(conservatism == "calculate"){
-    if(!is.null(weights)){stop("If 'conservatism' == 'calculate', you cannot set the 'weights' argument, it must be left blank")}
+    if(!is.null(weighting)){stop("If 'conservatism' == 'calculate', you cannot set the 'weighting' argument, it must be left blank")}
   } else if(conservatism == "custom"){
-    if(!inherits(weights, "data.frame")){stop("'weights' must be a data.frame")}
-    if(ncol(weights) != 3){stop("'weights' must have 3 columns: level, species, and weight")}
-    if(!identical(colnames(weights), c("level","species","weight"))){stop("'weights' must have 3 columns: level, species, and weight")}
-    if(any(!weights$level %in% c("row","column"))){stop("The level column of 'weights' must only contain strings equal to 'row' or 'column'")}
-    if(!inherits(weights$weight, "numeric")){stop("The column 'weight' must be numeric")}
-    if(any(weights$weight < 0)){stop("All weights in the weight column must be positive numbers")}
-    if(!all(weights$species %in% all_species)){stop("All species in 'weights' must be present in training_networks")}
+    if(!inherits(weighting, "data.frame")){stop("'weighting' must be a data.frame")}
+    if(ncol(weighting) != 3){stop("'weighting' must have 3 columns: level, species, and weight")}
+    if(!identical(colnames(weighting), c("level","species","weight"))){stop("'weighting' must have 3 columns: level, species, and weight")}
+    if(any(!weighting$level %in% c("row","column"))){stop("The level column of 'weighting' must only contain strings equal to 'row' or 'column'")}
+    if(!inherits(weighting$weight, "numeric")){stop("The column 'weight' must be numeric")}
+    if(any(weighting$weight < 0)){stop("All weighting in the weight column must be positive numbers")}
+    if(!all(weighting$species %in% all_species)){stop("All species in 'weighting' must be present in training_networks")}
   }
 
   # checking networks_to_predict row and column assignments match training_networks
@@ -84,6 +84,14 @@ RolePredict <- function(training_networks, networks_to_predict, conservatism, we
   species_species_remapping_levels <- networks_to_predict_rbind[match(species_remapping$species, networks_to_predict_rbind$species),"level"] # level of species in species_remapping
   proxy_species_remapping_levels <- training_species_levels[match(species_remapping$proxy, training_species_levels$species),"level"] # level or proxy in species_remapping
   if(!all(species_species_remapping_levels == proxy_species_remapping_levels)){stop("In species_remapping, species in the 'species' column must be in the same level (row or column) as determined by networks_to_predict as the corresponding species in the 'proxy' column")}
+
+  # checking row/column assignments in weighting match training_networks
+  species_weightings_levels <- training_species_levels[match(weighting$species, training_species_levels$species),"level"] # level of species in weightings in training_networks
+  if(!all(species_weightings_levels == weighting$level)){stop("The level (row/column) of species in the 'species' column of 'weightings' must match must match whether these species are row or column names in training_networks. e.g. a species specified as 'row' in weightings must also be a row name, not a column name, in training_networks")}
+
+
+
+
 
   conservatism <- ConservatismPermTest(roles = roles, n_it = n_it, species = wanted_predictions)
 
