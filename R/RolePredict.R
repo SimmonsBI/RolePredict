@@ -25,6 +25,10 @@ RolePredict <- function(training_networks, networks_to_predict, conservatism, we
   if(!all(sapply(networks_to_predict, function(x) all(x$level %in% c("row","column"))))){stop("All elements of networks_to_predict must have a column called 'level' whose entries are either 'row' or 'column'")}
   if(!all(sapply(networks_to_predict, function(x) inherits(x$species, "character")))){stop("All elements of networks_to_predict must have a column called 'species' whose entries are character strings giving species names. Currently, elements of one or more 'species' columns are not of class 'chaarcter'.")}
   if(!all(sapply(networks_to_predict, function(x) all(table(x$level)>=4)))){stop("All elements of networks_to_predict must have 4 or more row species and 4 or more column species")}
+  networks_to_predict_rbind <- do.call("rbind", networks_to_predict)
+  if(!all(sapply(split(networks_to_predict_rbind, networks_to_predict_rbind$species), function(x){
+    length(unique(x$level)) == 1
+  }))){stop("All species in network_to_predict should be either row or column. This error is displayed because one of more species have been assigned more than one level i.e. a species is assigned as a row in one entry and a column in another entry")}
   networks_to_predict_remapping <- networks_to_predict # create networks_to_predict_remapping even if there is no remapping, so there is a unified variable name for the subsequent checks
   if(!is.null(species_remapping)){ # do remapping for proxy species in networks_to_predict if any is specified
     for(i in seq(networks_to_predict_remapping)){
@@ -51,6 +55,11 @@ RolePredict <- function(training_networks, networks_to_predict, conservatism, we
 
   # weighting
   if(conservatism == "none"){
+    using_weights <- FALSE
+  } else {
+    using_weights <- TRUE
+  }
+  if(conservatism == "none"){
     if(!is.null(weighting)){stop("If 'conservatism' == 'none', you cannot set the 'weighting' argument, it must be left blank")}
   } else if(conservatism == "conservatism_output"){
     if(!inherits(weighting, "data.frame")){stop("'weighting' must be the output of Conservatism() or ConservatismPermTest(): the output of those functions should be a data.frame")}
@@ -62,10 +71,16 @@ RolePredict <- function(training_networks, networks_to_predict, conservatism, we
     if(!inherits(weighting$delta, "numeric")){stop("'weighting' must be the output of Conservatism() or ConservatismPermTest(): column delta must be numeric")}
     if(!inherits(weighting$z, "numeric")){stop("'weighting' must be the output of Conservatism() or ConservatismPermTest(): column z must be numeric")}
     if(!inherits(weighting$P, "numeric")){stop("'weighting' must be the output of Conservatism() or ConservatismPermTest(): column P must be numeric")}
-    if(any(weighting$P > 1)){stop("'weighting' must be the output of Conservatism() or ConservatismPermTest(): values of column P are > 1")}
-    if(any(weighting$P < 0)){stop("'weighting' must be the output of Conservatism() or ConservatismPermTest(): values of column P are < 0")}
+    if(any(weighting$P > 1)){stop("'weighting' must be the output of Conservatism() or ConservatismPermTest(): values of column P must be between 0 and 1")}
+    if(any(weighting$P < 0)){stop("'weighting' must be the output of Conservatism() or ConservatismPermTest(): values of column P must be between 0 and 1")}
     if(!all(weighting$species %in% all_species)){stop("'weighting' must be the output of Conservatism() or ConservatismPermTest() run on the same data as in training_networks. Not all species in 'weighting' are present in training_networks")}
-    #note to self:  add check that all species that occur > once in training data are in weights if using conservatism output
+    if(is.null(species_remapping)){
+      ntp_species_frequency <- sapply(ntp_species, function(x) sum(all_species == x)) # how many times each ntp species occurs in training_networks
+      if(!all(names(which(ntp_species_frequency>1)) %in% weighting$species)){stop("'weighting' must be the output of Conservatism() or ConservatismPermTest(): All species in networks_to_predict that occur more than once in training_networks should be present in 'weighting'")}
+    } else { # weightings must have: 1. weights for all networks_to_predict spp w/ no proxies; 2. all ntp spp w/ proxies which occur more than once in training_networks; 3. and all proxy species
+      species_to_calculate_conservatism <- intersect(names(which(table(all_species)>1)), c(ntp_species, species_remapping$proxy)) # calculate conservatism for: all ntp species and all proxy species, that occur more than once in training_networks i.e. 1. all networks_to_predict spp w/ no proxies which occur more than once in training_networks; 2. all ntp spp w/ proxies which occur more than once in training_networks; 3. and all proxy species which occur more than once in training_networks
+      if(!all(species_to_calculate_conservatism %in% weighting$species)){stop("'weighting' must be the output of Conservatism() or ConservatismPermTest(): at a minimum it must contain weightings for all species in networks_to_predict and all species in species_remapping$proxy that occur more than once in training_networks")}
+    }
   } else if(conservatism == "calculate"){
     if(!is.null(weighting)){stop("If 'conservatism' == 'calculate', you cannot set the 'weighting' argument, it must be left blank")}
   } else if(conservatism == "custom"){
@@ -79,10 +94,10 @@ RolePredict <- function(training_networks, networks_to_predict, conservatism, we
     if(!all(weighting$species %in% all_species)){stop("All species in 'weighting' must be present in training_networks")}
     if(is.null(species_remapping)){
       if(!all(ntp_species %in% weighting$species)){stop("All species in 'networks_to_predict' must have weights specified in 'weighting' when using conservatism = 'custom'")}
-    } else { # must have weights for all ntp spp w/ no proxies; all ntp spp w/ proxies which occur more than once in t_n; and all proxy species
+    } else { # weightings must have: 1. weights for all networks_to_predict spp w/ no proxies; 2. all ntp spp w/ proxies which occur more than once in training_networks; 3. and all proxy species
       if(!all(setdiff(ntp_species, species_remapping$species) %in% weighting$species)){stop("All species in networks_to_predict that do not have proxies specified via species_remapping must have weighted assigned to them in 'weighting'")}
       if(!all(species_remapping$proxy %in% weighting$species)){stop("All proxy species in species_remapping must have weights assigned to them in 'weighting'")}
-      species_remapping_species_frequency <- sapply(species_remapping$species, function(x) sum(all_species == x))
+      species_remapping_species_frequency <- sapply(species_remapping$species, function(x) sum(all_species == x)) # how many times each species_remapping species occurs in training_networks
       if(any(species_remapping_species_frequency>1)){
         if(!all(names(which(species_remapping_species_frequency > 1)) %in% weighting$species)){stop("All species in the 'species' column of species_remapping must have weights assigned to them in 'weighting' if they occur more than once in training_networks. This is because for species occurring more than once in training_networks, RolePredict can calculate their conservatism and average these values with the conservatism values of the proxy species.")}
       }
@@ -112,12 +127,55 @@ RolePredict <- function(training_networks, networks_to_predict, conservatism, we
 
   # Calculate conservatism -----------------
   if(conservatism == "calculate"){
-    # weightings <- ConservatismPermTest(roles = training_roles, n_it = n_it, species = wanted_predictions)
+    weighting <- ConservatismPermTest(roles = training_roles, n_it = n_it, species = species_to_calculate_conservatism)
+  }
+
+  # Impute missing species ----------------- (impute weights for any species which we need to predict, but which don't have weights, UNLESS the species has a proxy and only occurs in training_networks 0 or 1 times. Also impute for any proxy species which don't have weights)
+  if(conservatism %in% c("calculate","conservatism_output")){
+    weighting <- weighting[,c("level","species","P")] # match format of custom weightings
+    colnames(weighting) <- c("level","species","weight") # match format of custom weightings
+    weights_missing_species <- setdiff(ntp_species, weighting$species) # which species do we need to predict but do not have weights for
+    if(any(species_remapping_species_frequency < 2)){ # which species have proxies but only occur in training_networks < 2 times
+      species_with_proxies_that_occur_01 <- names(which(species_remapping_species_frequency<2))
+      species_to_impute <- setdiff(weights_missing_species, species_with_proxies_that_occur_01) # species we need to predict but don't have weights for, which are not species with proxies that only occur 0 or 1 times in training_networks
+    }
+
+    species_to_impute <- c(species_to_impute, setdiff(species_remapping$proxy, weighting$species)) # Make sure we also impute any proxy species we don't have weights for
+    species_to_impute <- unique(species_to_impute) # ***** ISSUE: if species to impute is a proxy, we can't pull the level data in L146-150 because level data isnt in networks to predict. Maybe
+    # split proxy and non proxy imputations and get the level data from training_species_levels?
+
+    if(length(species_to_impute) > 0){ # impute any species we need to
+      species_to_impute_levels <- unname(sapply(species_to_impute, function(x){ # find the level of these species
+        if(x %in% networks_to_predict_rbind$species){
+          unique(networks_to_predict_rbind[networks_to_predict_rbind$species == x, "level"])
+        } else if(x %in% species_remapping$proxy){
+          unique(training_species_levels[training_species_levels$species == x, "level"])
+        } else {
+          stop("Error IM1: This error should never occur. Please contact the package maintainer with this error message and a reproducible example.")
+        }
+
+      }))
+      weighting <- rbind(weighting, data.frame(level = species_to_impute_levels, species = species_to_impute, weight = 0.5)) # add them to weighting with an uninformative weight of 0.5 i.e. coin flip
+    }
+  }
+
+  # Relabel species proxies -----------------
+  for(i in 1:nrow(species_remapping)){
+
+
+
   }
 
 
 
 
+
+  if(conservatism == "custom"){
+    aggregate(weight ~ level + species, FUN = "mean", data = weighting)
+  }
+
+
+  if(!all(ntp_species %in% weighting$species))stop("Error IM2: All network_to_predict species must have a weighting. This error should never occur, please contact the package maintainer with a reproducible example of how you got this error.")
 
 }
 
