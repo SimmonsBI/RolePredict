@@ -18,6 +18,7 @@ RolePredictPreProcessing <- function(training_networks, networks_to_predict, con
     if(!all(species_remapping$species %in% ntp_species)){stop("All species in 'species' column of species_remapping must be present in networks_to_predict")}
     if(!all(species_remapping$proxy %in% all_species)){stop("All species in 'proxy' column of species_remapping must be present in training_networks")}
     if(!all(table(species_remapping$species)==1)){stop("Species must only have one proxy. This error appears because one or more species occurs more than once in the 'species' column of species_remapping")}
+    if(any(species_remapping$species == species_remapping$proxy)){stop("A species cannot be a proxy for itself. At least one species has itself as a proxy in species_remapping.")}
     species_remapping_species_frequency <- sapply(species_remapping$species, function(x) sum(all_species == x)) # how many times each species_remapping species occurs in training_networks?
   }
 
@@ -154,7 +155,7 @@ RolePredictPreProcessing <- function(training_networks, networks_to_predict, con
 
 
 
-    ############### what if we have the weights for all species in ntp, but not the weights for all the proxies and thus need to impute the proxy but it isn't triggered because length)weights missing is 0.
+    ############### what if we have the weights for all species in ntp, but not the weights for all the proxies and thus need to impute the proxy but it isn't triggered because length(weights missing) is 0.
 
 
     if(length(species_to_impute) > 1){ # if there are any species we need which don't have weights, move into imputation
@@ -245,5 +246,10 @@ RolePredictPreProcessing <- function(training_networks, networks_to_predict, con
   }
 
   # Output -----------------
-  list(mean_training_roles, weighting)
+  if(conservatism == "none"){
+    list(mean_roles = mean_training_roles)
+  } else {
+    list(mean_roles = mean_training_roles, processed_weighting = weighting)
+  }
+
 }
