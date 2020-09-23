@@ -1,10 +1,11 @@
 #' placeholder
 #'
-#' @param x A number.
-#' @param y A number.
+#' @param roles A number.
+#' @param n_it A number.
+#' @param species A number.
 #' @return The sum of \code{x} and \code{y}.
 #' @examples
-#' add(1, 1)
+#' #
 #' @export
 ConservatismPermTest <- function(roles, n_it, species){
   # Argument checks -----------------

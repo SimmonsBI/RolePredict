@@ -1,10 +1,15 @@
 #' placeholder
 #'
-#' @param x A number.
-#' @param y A number.
+#' @param training_networks A number.
+#' @param networks_to_predict A number.
+#' @param conservatism sss
+#' @param weighting ddd
+#' @param n_it ssss
+#' @param species_remapping ddd
+#' @param ... ddd
 #' @return The sum of \code{x} and \code{y}.
 #' @examples
-#' add(1, 1)
+#' #
 #' @export
 RolePredict <- function(training_networks, networks_to_predict, conservatism, weighting = NULL, n_it, species_remapping = NULL, ...){
   # Pre-process inputs before the optimisation -----------------

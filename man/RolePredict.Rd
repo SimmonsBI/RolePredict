@@ -15,9 +15,19 @@ RolePredict(
 )
 }
 \arguments{
-\item{x}{A number.}
+\item{training_networks}{A number.}
 
-\item{y}{A number.}
+\item{networks_to_predict}{A number.}
+
+\item{conservatism}{sss}
+
+\item{weighting}{ddd}
+
+\item{n_it}{ssss}
+
+\item{species_remapping}{ddd}
+
+\item{...}{ddd}
 }
 \value{
 The sum of \code{x} and \code{y}.
@@ -26,5 +36,5 @@ The sum of \code{x} and \code{y}.
 placeholder
 }
 \examples{
-add(1, 1)
+#
 }

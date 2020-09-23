@@ -7,9 +7,13 @@
 Conservatism(network_list, n_it, species, ...)
 }
 \arguments{
-\item{x}{A number.}
+\item{network_list}{A number.}
 
-\item{y}{A number.}
+\item{n_it}{A number.}
+
+\item{species}{A number.}
+
+\item{...}{ddd}
 }
 \value{
 The sum of \code{x} and \code{y}.
@@ -18,5 +22,5 @@ The sum of \code{x} and \code{y}.
 placeholder
 }
 \examples{
-add(1, 1)
+#
 }

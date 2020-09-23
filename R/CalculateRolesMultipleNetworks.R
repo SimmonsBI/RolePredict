@@ -1,10 +1,10 @@
 #' placeholder
 #'
-#' @param x A number.
-#' @param y A number.
+#' @param network_list A number.
+#' @param ... ddd
 #' @return The sum of \code{x} and \code{y}.
 #' @examples
-#' add(1, 1)
+#' #
 #' @export
 CalculateRolesMultipleNetworks <- function(network_list, ...){
   # Argument checks -----------------
