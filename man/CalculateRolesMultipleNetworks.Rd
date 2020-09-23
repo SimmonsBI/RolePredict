@@ -19,11 +19,11 @@ A list of length two, where the first element (\code{row_roles}) contains the ro
 second element (\code{column_roles}) contains the roles of all column species from across all networks in \code{network_list}.
 
 Each element is a data frame with one row for each occurrence of each species. The first column is the network in which that row's species occurred. The second column
-is the species name itself. Columns 3 onwards are one column for each node position: 46 columns if \code{six_node} is FALSE, and 148 columns if \code{six_node} is TRUE (depending on which was specified via
-the optional arguments passed through to \code{bmotif} using the '\code{...}' argument.
-.
-Columns names are given as "npx" where x is the ID of the position as described in Simmons et al. (2019) (and originally in Appendix 1 of Baker et al. (2015)). \strong{To view the 'motif dictionary' showing
-which node position a given ID corresponds to, enter \code{vignette("bmotif-dictionary")}.}
+is the species name itself. Columns 3 onwards are one column for each node position: 23 columns if \code{six_node} is FALSE, and 74 columns if \code{six_node} is TRUE (depending on which was specified via
+the optional arguments passed through to \code{bmotif} using the '\code{...}' argument; default is \code{six_node} is FALSE).
+
+Columns names are given as "npx" where x is the ID of the position as described in Simmons et al. (2019) (and originally in Appendix 1 of Baker et al. (2015)). To view the 'motif dictionary' showing
+which node position a given ID corresponds to, load \code{bmotif} via \code{library(bmotif)} then enter \code{vignette("bmotif-dictionary")}.
 
 For a network with A rows and P columns, by default (where \code{level} = "all") the data frame has A + P rows, one for each node. If \code{level} = "rows", the data frame will have A rows, one for each row node;
 if \code{level} = "columns", it will have P rows, one for each column node.
@@ -41,6 +41,11 @@ Calculate roles of species in mutliple networks
 m1 <- matrix(c(1,0,0,1),2,2) # a sample network
 m2 <- matrix(c(1,1,0,1,0,1),3,2) # another sample network
 CalculateRolesMultipleNetworks(network_list = list(m1,m2))
+
+# for six_nodes we can pass an optional argument to bmotif
+CalculateRolesMultipleNetworks(network_list = list(m1,m2), six_node = TRUE)
+
+# if networks are weighted, we can specify KJFKABDKAFHEKJAFEHFJKAEHFAKJHAFKJHFBKHAFBLJHADFVLJFHAVBLJFHBALFJHBFLJADHBVAL<GJFVJ<FGHAVAJHDF
 }
 \references{
 Baker, N., Kaartinen, R., Roslin, T., and Stouffer, D. B. (2015). Species’ roles in food webs show fidelity across a highly variable oak forest. Ecography, 38(2):130–139.

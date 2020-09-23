@@ -12,8 +12,8 @@
 #' is the species name itself. Columns 3 onwards are one column for each node position: 23 columns if \code{six_node} is FALSE, and 74 columns if \code{six_node} is TRUE (depending on which was specified via
 #' the optional arguments passed through to `bmotif` using the '`...`' argument; default is \code{six_node} is FALSE).
 #'
-#' Columns names are given as "npx" where x is the ID of the position as described in Simmons et al. (2019) (and originally in Appendix 1 of Baker et al. (2015)). \strong{To view the 'motif dictionary' showing
-#' which node position a given ID corresponds to, load `bmotif` via `library(bmotif)` then enter \code{vignette("bmotif-dictionary")}.}
+#' Columns names are given as "npx" where x is the ID of the position as described in Simmons et al. (2019) (and originally in Appendix 1 of Baker et al. (2015)). To view the 'motif dictionary' showing
+#' which node position a given ID corresponds to, load `bmotif` via `library(bmotif)` then enter \code{vignette("bmotif-dictionary")}.
 #'
 #' For a network with A rows and P columns, by default (where \code{level} = "all") the data frame has A + P rows, one for each node. If \code{level} = "rows", the data frame will have A rows, one for each row node;
 #' if \code{level} = "columns", it will have P rows, one for each column node.
@@ -37,7 +37,7 @@
 #' # for six_nodes we can pass an optional argument to bmotif
 #' CalculateRolesMultipleNetworks(network_list = list(m1,m2), six_node = TRUE)
 #'
-#' # if networks are weighted, we can specify
+#' # if networks are weighted, we can specify KJFKABDKAFHEKJAFEHFJKAEHFAKJHAFKJHFBKHAFBLJHADFVLJFHAVBLJFHBALFJHBFLJADHBVAL<GJFVJ<FGHAVAJHDF
 #' @export
 CalculateRolesMultipleNetworks <- function(network_list, ...){
   # Argument checks -----------------
