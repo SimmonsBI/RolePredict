@@ -1,10 +1,43 @@
-#' placeholder
+#' Calculate roles of species in mutliple networks
 #'
-#' @param network_list A number.
-#' @param ... ddd
-#' @return The sum of \code{x} and \code{y}.
+#' @param network_list A list of numeric biadjacency matrices representing interactions between two groups of nodes. Each row corresponds to a node in one level
+#' and each column corresponds to a node in the other level. Elements of M are positive numbers if nodes do interact, and 0
+#' otherwise. Formally, M is a biadjacency matrix. When nodes i and j interact, m_ij > 0; if they do not interact, m_ij = 0. Matrix can be binary or quantitative.
+#' @param ... Arguments to be passed to `bmotif`, such as whether motifs up to six nodes should be considered, and whether species roles should be based on
+#' weighted or binary interactions. See `?node_positions` for details of the arguments that can be passed to `bmotif`.
+#' @return A list of length two, where the first element (`row_roles`) contains the roles of all row species from across all networks in `network_list` and the
+#' second element (`column_roles`) contains the roles of all column species from across all networks in `network_list`.
+#'
+#' Each element is a data frame with one row for each occurrence of each species. The first column is the network in which that row's species occurred. The second column
+#' is the species name itself. Columns 3 onwards are one column for each node position: 23 columns if \code{six_node} is FALSE, and 74 columns if \code{six_node} is TRUE (depending on which was specified via
+#' the optional arguments passed through to `bmotif` using the '`...`' argument; default is \code{six_node} is FALSE).
+#'
+#' Columns names are given as "npx" where x is the ID of the position as described in Simmons et al. (2019) (and originally in Appendix 1 of Baker et al. (2015)). \strong{To view the 'motif dictionary' showing
+#' which node position a given ID corresponds to, load `bmotif` via `library(bmotif)` then enter \code{vignette("bmotif-dictionary")}.}
+#'
+#' For a network with A rows and P columns, by default (where \code{level} = "all") the data frame has A + P rows, one for each node. If \code{level} = "rows", the data frame will have A rows, one for each row node;
+#' if \code{level} = "columns", it will have P rows, one for each column node.
+#'
+#' By default, the elements of this data frame will be the raw binary or weighted position measures (depending on which was requested). If \code{normalisation} is set to something other than "none", the elements will be
+#' normalised position counts as described above.
+#'
+#' If \code{weights_method} is set to 'all', \code{node_positions} instead returns a list of length five, each containing a data.frame corresponding to
+#' one of the five weighting methods described above.
+#'
+#' @references
+#' Baker, N., Kaartinen, R., Roslin, T., and Stouffer, D. B. (2015). Species’ roles in food webs show fidelity across a highly variable oak forest. Ecography, 38(2):130–139.
+#'
+#' Simmons, BI, Sweering, MJM, Schillinger, M, Dicks, LV, Sutherland, WJ, Di Clemente, R. (2019). bmotif: A package for motif analyses of bipartite networks. Methods Ecol Evol; 10: 695– 701. https://doi.org/10.1111/2041-210X.13149
+
 #' @examples
-#' #
+#' m1 <- matrix(c(1,0,0,1),2,2) # a sample network
+#' m2 <- matrix(c(1,1,0,1,0,1),3,2) # another sample network
+#' CalculateRolesMultipleNetworks(network_list = list(m1,m2))
+#'
+#' # for six_nodes we can pass an optional argument to bmotif
+#' CalculateRolesMultipleNetworks(network_list = list(m1,m2), six_node = TRUE)
+#'
+#' # if networks are weighted, we can specify
 #' @export
 CalculateRolesMultipleNetworks <- function(network_list, ...){
   # Argument checks -----------------
@@ -70,5 +103,5 @@ CalculateRolesMultipleNetworks <- function(network_list, ...){
   roles_rows <- roles_rows[,c(TRUE, TRUE, position_numbers %in% row_position_numbers)] # subset to row positions
   roles_columns <- roles_columns[,c(TRUE, TRUE, !position_numbers %in% row_position_numbers)] # subset to column positions
 
-  list(roles_rows, roles_columns) # output as list
+  list(row_roles = roles_rows, column_roles = roles_columns) # output as list
 }
