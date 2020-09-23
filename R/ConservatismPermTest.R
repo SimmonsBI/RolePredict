@@ -1,3 +1,4 @@
+#' @export
 ConservatismPermTest <- function(roles, n_it, species){
   # Argument checks -----------------
   # roles
@@ -50,7 +51,7 @@ ConservatismPermTest <- function(roles, n_it, species){
   row_species <- row_roles$species # extract names of row species
   column_species <- column_roles$species # extract names of column species
   wr <- 0 # initialise row write counter at 0
-  pb <- txtProgressBar(min = 0, max = length(species), style = 3)
+  pb <- utils::txtProgressBar(min = 0, max = length(species), style = 3)
 
   for(focal_species in species){ # for each member of species...
     wr <- wr + 1 # increment the write counter
@@ -67,7 +68,7 @@ ConservatismPermTest <- function(roles, n_it, species){
     }
     null_mpds <- NULL # initialise a container to record the distribution of null mean pairwise distances
     for(i in 1:n_it){ # for 1 to the number of iterations
-      null_roles$species <- ave(null_roles$species, null_roles$network, FUN = sample) # permute the species labels randomly within each network
+      null_roles$species <- stats::ave(null_roles$species, null_roles$network, FUN = sample) # permute the species labels randomly within each network
       sampled_null_roles <- null_roles[null_roles$species == focal_species,grepl(pattern = "np[0-9]", x = colnames(null_roles))] # extract roles of 'focal' species from the permuted data (equivalent to randomly selecting a stratified sample)
       null_mpds <- c(null_mpds, mean(vegan::vegdist(x = sampled_null_roles, method = "bray"))) # record mean pairwise Bray-Curtis distance between the permuted focal species' roles
     }
@@ -77,9 +78,9 @@ ConservatismPermTest <- function(roles, n_it, species){
     conservatism$observed_dissimilarity[wr] <- focal_species_mpd # observed mean pairwise dissimilarity
     conservatism$mean_null_dissimilarity[wr] <- mean(null_mpds) # mean of the null mean pairwise dissimilarities
     conservatism$delta[wr] <- conservatism$mean_null_dissimilarity[wr] - focal_species_mpd # difference between mean null dissimilarity and observed dissimilarity; if positive, the observed dissimilarity is less than random, and thus there is a positive conservatism signal
-    conservatism$z[wr] <- (conservatism$mean_null_dissimilarity[wr] - focal_species_mpd)/sd(null_mpds) # z score; if positive, there is a positive conservatism signal
+    conservatism$z[wr] <- (conservatism$mean_null_dissimilarity[wr] - focal_species_mpd)/stats::sd(null_mpds) # z score; if positive, there is a positive conservatism signal
     conservatism$P[wr] <- sum(null_mpds < focal_species_mpd)/n_it # P value - proportion of iterations where the null MPD was less than the observed MPD
-    setTxtProgressBar(pb, wr)
+    utils::setTxtProgressBar(pb, wr)
     cat("\r")
   }
   conservatism # output

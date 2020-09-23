@@ -1,3 +1,4 @@
+#' @export
 CalculateRolesMultipleNetworks <- function(network_list, ...){
   # Argument checks -----------------
   args <- list(...)
@@ -32,7 +33,7 @@ CalculateRolesMultipleNetworks <- function(network_list, ...){
   # Calculate species roles for each network -----------------
   roles_rows <- list() # initialise results container
   roles_columns <- list() # initialise results container
-  pb <- txtProgressBar(min = 0, max = length(network_list), style = 3) # progress bar
+  pb <- utils::txtProgressBar(min = 0, max = length(network_list), style = 3) # progress bar
 
   for(i in seq(network_list)){
     if(is.null(args$weights_method)){ # if weights_method isn't set, set it to 'none'
@@ -48,7 +49,7 @@ CalculateRolesMultipleNetworks <- function(network_list, ...){
     nc <- ncol(network_list[[i]]) # number of columns in focal network
     roles_rows[[i]] <- roles_allspp[1:nr,] # store row species roles in their own list
     roles_columns[[i]] <- roles_allspp[(nr+1):(nr+nc),] # store column species roles in their own list
-    setTxtProgressBar(pb, i)
+    utils::setTxtProgressBar(pb, i)
   }
 
   # Prepare output -----------------

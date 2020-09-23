@@ -205,7 +205,7 @@ RolePredictPreProcessing <- function(training_networks, networks_to_predict, con
         weighting <- rbind(weighting, proxy_to_add)
       }
       if(any(table(weighting$species)>1)){
-        weighting <- aggregate(weight ~ level + species, FUN = "mean", data = weighting) # take mean of weights if a proxy species needs to be combined with a focal_species that occurred more than once in training_networks and thus already had a weight
+        weighting <- stats::aggregate(weight ~ level + species, FUN = "mean", data = weighting) # take mean of weights if a proxy species needs to be combined with a focal_species that occurred more than once in training_networks and thus already had a weight
       }
     }
     if(!all(networks_to_predict_rbind$species %in% weighting$species)){stop("Error IM5: This error should never occur. Please contact the package maintainer with this error message and a reproducible example.")}
@@ -229,7 +229,7 @@ RolePredictPreProcessing <- function(training_networks, networks_to_predict, con
   }
 
   # Take average of each species' role -----------------
-  mean_training_roles <- lapply(training_roles, function(x) aggregate(.~species, x[,-which(colnames(x) == "network")], median))
+  mean_training_roles <- lapply(training_roles, function(x) stats::aggregate(.~species, x[,-which(colnames(x) == "network")], stats::median))
 
   # Remove roles and weights we don't need -----------------
   if(using_weights){
