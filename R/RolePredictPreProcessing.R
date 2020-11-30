@@ -188,6 +188,7 @@ RolePredictPreProcessing <- function(training_networks, networks_to_predict, con
 
   if(using_weights){
     # Check we have the weightings we should have at this point -----------------
+    weighting <- weighting[!duplicated(weighting),] # remove any duplicate rows which can occur if multiple networks are being predicted which have overlapping species
     if(!all(table(weighting$species) == 1)){stop("Error: IM6: This error should never occur. Please contact the package maintainer with this error message and a reproducible example.")}
     if(is.null(species_remapping)){
       if(!all(networks_to_predict_rbind$species %in% weighting$species)){stop("Error IM3: This error should never occur. Please contact the package maintainer with this error message and a reproducible example.")}
