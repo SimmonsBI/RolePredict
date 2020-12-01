@@ -103,5 +103,10 @@ CalculateRolesMultipleNetworks <- function(network_list, ...){
   roles_rows <- roles_rows[,c(TRUE, TRUE, position_numbers %in% row_position_numbers)] # subset to row positions
   roles_columns <- roles_columns[,c(TRUE, TRUE, !position_numbers %in% row_position_numbers)] # subset to column positions
 
+  message(paste("\nRoles could not be calculated for the following row species:", paste(roles_rows[!complete.cases(roles_rows),"species"], collapse = ", ")))
+  message(paste("Roles could not be calculated for the following column species:", paste(roles_columns[!complete.cases(roles_columns),"species"], collapse = ", ")))
+  roles_rows <- roles_rows[complete.cases(roles_rows),] # remove any rows which have NAs
+  roles_columns <- roles_columns[complete.cases(roles_columns),] # remove any rows which have NAs
+
   list(row_roles = roles_rows, column_roles = roles_columns) # output as list
 }
