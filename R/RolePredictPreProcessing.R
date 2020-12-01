@@ -7,6 +7,10 @@ RolePredictPreProcessing <- function(training_networks, networks_to_predict, con
   all_species <- unlist(lapply(training_networks, function(x) unlist(dimnames(x)))) # make a single vector of all species names across all networks
   training_roles <- CalculateRolesMultipleNetworks(network_list = training_networks, ...) # calculate roles of all species in training_networks
 
+  #####
+  #####
+  ##### COULD have two separate functions one with remapping one without to make things clearer?
+
   # species_remapping
   ntp_species <- unlist(lapply(networks_to_predict, function(x) x$species))
   if(!is.null(species_remapping)){
@@ -50,7 +54,15 @@ RolePredictPreProcessing <- function(training_networks, networks_to_predict, con
   if(!all(sapply(networks_to_predict_remapping, function(x){all(x$species %in% all_species)}))){stop("Not all species in networks_to_predict are in training_networks, even after performing any remapping specified using species_remapping. All species in networks_to_predict must be present in training_networks or be replaced by a proxy that is in training_networks using the species_remapping argument")}
   if(!all(sapply(networks_to_predict_remapping, function(x){
     all(x[x$level == "row","species"] %in% training_roles[[1]]$species) && all(x[x$level == "column","species"] %in% training_roles[[2]]$species)
-  }))){stop("All species in networks_to_predict must be present in training_roles or be replaced by a proxy that is in training_networks using the species_remapping argument. If you see this message, something has gone very wrong. Please contact the package author with a reproducible example of how you got this error.")}
+  }))){message("Error: All species in networks_to_predict must be present in training_roles or be replaced by a proxy that is in training_networks using the species_remapping argument.\n
+            This message can appear if the normalisation chosen to calculate species roles resulted in NA position counts for all occurrences of one or more species which were needed
+            for the prediction. This can happen if, for example, a species is part of a disconnected subnetwork where it only interacts with a single other species: in cases
+            like this the denominator used in the normalisation can be 0, resulting in NA values.
+            If this is the case, the affected wpecies will have been reported by the message: 'Roles could not be calculated for the following row/column species:...'.
+            Try removing these species from your desired predicted network, or avoid using them as proxies. Alternatively, add role data for any of these species which are in your desired predicted network or which act as proxies.
+            Another option is to try using a different normalisation, by changing the 'normalisation' argument. If this is the cause, the error should not appear when 'normalisation = 'none' or 'sum'.\n
+            If this is not the cause, then something has gone very wrong. Please contact the package author with a reproducible example of how you got this error.")
+    stop()}
 
   # conservatism
   if(!inherits(conservatism, "character")){stop("'conservatism' must be a character string equal to: 'none','conservatism_output', 'calculate', 'custom'")}
