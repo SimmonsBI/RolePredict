@@ -103,8 +103,15 @@ CalculateRolesMultipleNetworks <- function(network_list, ...){
   roles_rows <- roles_rows[,c(TRUE, TRUE, position_numbers %in% row_position_numbers)] # subset to row positions
   roles_columns <- roles_columns[,c(TRUE, TRUE, !position_numbers %in% row_position_numbers)] # subset to column positions
 
-  message(paste("\nRoles could not be calculated for the following row species:", paste(roles_rows[!complete.cases(roles_rows),"species"], collapse = ", ")))
-  message(paste("Roles could not be calculated for the following column species:", paste(roles_columns[!complete.cases(roles_columns),"species"], collapse = ", ")))
+  if(!all(complete.cases(roles_rows))){
+    message(paste("\nRoles could not be calculated for the following row species:", paste(roles_rows[!complete.cases(roles_rows),"species"], collapse = ", ")))
+  }
+  if(!all(complete.cases(roles_columns))){
+    message(paste("Roles could not be calculated for the following column species:", paste(roles_columns[!complete.cases(roles_columns),"species"], collapse = ", ")))
+  }
+  if(!all(complete.cases(roles_columns)) || !all(complete.cases(roles_rows))){
+    message("If no further errors are shown this does not matter for your case. It only matters if any of the above species are part of the predicted network (and do not have a proxy) or if they are themselves a proxy species. If further errors are shown, ignore this message.")
+  }
   roles_rows <- roles_rows[complete.cases(roles_rows),] # remove any rows which have NAs
   roles_columns <- roles_columns[complete.cases(roles_columns),] # remove any rows which have NAs
 
